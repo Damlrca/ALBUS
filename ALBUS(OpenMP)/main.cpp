@@ -3,7 +3,7 @@
 #include<time.h>
 #include"Storage_format.h"
 #include"Albus_spmv.h"
-#include<immintrin.h>
+//#include<immintrin.h>
 #include<omp.h>
 #include<sys/time.h>
 #include<stdlib.h>
@@ -51,6 +51,8 @@ int main(int argc , char ** argv)
         DOU  * mid_ans;
         DOU    start_time,end_time;
         INT    thread_nums = omp_get_max_threads();
+		printf("thread_nums: %d\n", thread_nums);
+		omp_set_num_threads(thread_nums);
         fp_mtx = fopen(filename,"rb+");
         printf("--------------Matrix Information and Performance Data-------------\n");
         ReadFile(fp_mtx,row_ptr,col_idx,mtx_val,vec_val,par_set);

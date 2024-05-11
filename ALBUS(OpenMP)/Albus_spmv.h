@@ -3,7 +3,7 @@
 #include<math.h>
 #include<time.h>
 #include<omp.h>
-#include<immintrin.h>
+//#include<immintrin.h>
 #include<cstring>
 #include<sys/time.h>
 #include<stdlib.h>
