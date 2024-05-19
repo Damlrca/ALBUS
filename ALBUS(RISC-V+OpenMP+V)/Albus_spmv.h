@@ -13,121 +13,6 @@ using namespace std;
 
 #define INT int
 #define DOU double
-/*
-#define AVX_DOU __m256d
-#define SSE_DOU __m128d
-
-inline DOU SIMD_fast1(INT start1,INT num,INT * __restrict row_ptr,INT * __restrict col_idx,DOU * __restrict mtx_val,DOU * __restrict vec_val)
-{
-	DOU answer;
-	switch(num)
-	{
-		case 4 : {
-			register SSE_DOU mtx_3 , vec_3 , ans_3 , mtx_3_1 , vec_3_1;
-			register INT s1,s2,s3;
-			s1      = start1 + 1;
-			s2      = start1 + 2;
-			s3      = start1 + 3;
-			mtx_3   = _mm_load_pd(mtx_val+start1);
-			mtx_3_1 = _mm_load_pd(mtx_val+s2);
-			vec_3   = _mm_set_pd(vec_val[col_idx[s1]],vec_val[col_idx[start1]]);
-			vec_3_1 = _mm_set_pd(vec_val[col_idx[s3]],vec_val[col_idx[s2]]);
-			ans_3   = _mm_fmadd_pd(mtx_3_1,vec_3_1,_mm_mul_pd(mtx_3,vec_3));
-			answer  = ans_3[0]+ans_3[1];
-			return answer;
-		}
-		default : {
-			register AVX_DOU mtx_ans_1,mtx_3,vec_3;
-			register INT s1,s2,s3;
-			register INT t      = num & (~3);
-			register INT start2 = start1 + t;
-			register INT num_1  = num & 3;
-			s1 = start1 + 1;
-			s2 = start1 + 2;
-			s3 = start1 + 3;
-			_mm_prefetch((DOU *)&mtx_val[start1+16],_MM_HINT_T0);
-			_mm_prefetch((DOU *)&col_idx[start1+16],_MM_HINT_T0);
-			mtx_3     = _mm256_load_pd(mtx_val+start1);
-			vec_3     = _mm256_set_pd(vec_val[col_idx[s3]],vec_val[col_idx[s2]],vec_val[col_idx[s1]],vec_val[col_idx[start1]]);
-			mtx_ans_1 = _mm256_mul_pd(mtx_3,vec_3);
-			start1 += 4;
-			#pragma unroll(32)
-			for(;start1<start2;start1+=4)
-			{
-				s1        = start1 + 1;
-				s2        = start1 + 2;
-				s3        = start1 + 3;
-				mtx_3     = _mm256_load_pd(mtx_val+start1);
-				vec_3     = _mm256_setr_pd(vec_val[col_idx[start1]],vec_val[col_idx[s1]],vec_val[col_idx[s2]],vec_val[col_idx[s3]]);
-				mtx_ans_1 = _mm256_fmadd_pd(mtx_3,vec_3,mtx_ans_1);
-			}
-			switch (num_1)
-			{
-				case 0 : {
-					mtx_ans_1 = _mm256_hadd_pd(mtx_ans_1,mtx_ans_1);
-					answer    = mtx_ans_1[0] + mtx_ans_1[2];
-					return answer;
-				}
-				case 1 : {
-					mtx_ans_1 = _mm256_hadd_pd(mtx_ans_1,mtx_ans_1);
-					answer    = mtx_ans_1[0] + mtx_ans_1[2];
-					answer    = answer + (mtx_val[start2]*vec_val[col_idx[start2]]);
-					return answer;
-				}
-				case 2 : {
-					mtx_ans_1 = _mm256_hadd_pd(mtx_ans_1,mtx_ans_1);
-					answer    = mtx_ans_1[0] + mtx_ans_1[2];
-					s1        = start2 + 1;
-					answer    = answer+(mtx_val[start2]*vec_val[col_idx[start2]]+mtx_val[s1]*vec_val[col_idx[s1]]);
-					return answer;
-				}
-				default : {
-					s1        = start2 + 1;
-					s2        = start2 + 2;
-					mtx_3     = _mm256_load_pd(mtx_val+start2);
-					vec_3     = _mm256_set_pd(0,vec_val[col_idx[s2]],vec_val[col_idx[s1]],vec_val[col_idx[start2]]);
-					mtx_ans_1 = _mm256_fmadd_pd(mtx_3,vec_3,mtx_ans_1);
-					mtx_ans_1 = _mm256_hadd_pd(mtx_ans_1,mtx_ans_1);
-					answer    = mtx_ans_1[0] + mtx_ans_1[2];
-					return answer;
-				}
-			}
-		}
-	}
-}
-
-inline DOU SIMD_fast2(INT start1,INT num,INT * __restrict__ row_ptr,INT * __restrict__ col_idx,DOU * __restrict__ mtx_val,DOU * __restrict__ vec_val)
-{
-	register DOU answer;
-	switch(num)
-        {
-		case 0 : return 0;
-		case 1 : {
-			answer = mtx_val[start1] * vec_val[col_idx[start1]];
-			return answer;
-		}
-		case 2 : {
-			register INT s1;
-			s1     = start1 + 1;
-			answer = mtx_val[start1] * vec_val[col_idx[start1]] + mtx_val[s1] * vec_val[col_idx[s1]];
-			return answer;
-		}
-                case 3 : {
-			register SSE_DOU mtx_3 , vec_3 , ans_3 , mtx_3_1 , vec_3_1;
-                        register INT s1,s2;
-                        s1      = start1 + 1;
-                        s2      = start1 + 2;
-                        mtx_3   = _mm_load_pd(mtx_val+start1);
-                        mtx_3_1 = _mm_load_pd(mtx_val+s2);
-                        vec_3   = _mm_set_pd(vec_val[col_idx[s1]],vec_val[col_idx[start1]]);
-                        vec_3_1 = _mm_set_pd(0,vec_val[col_idx[s2]]);
-                        ans_3   = _mm_fmadd_pd(mtx_3_1,vec_3_1,_mm_mul_pd(mtx_3,vec_3));
-                        answer  = ans_3[0] + ans_3[1];
-                        return answer;
-		}
-	}
-}
-*/
 
 inline DOU RV_fast2(INT start1,INT num,INT * __restrict row_ptr,INT * __restrict col_idx,DOU * __restrict mtx_val,DOU * __restrict vec_val)
 {
@@ -144,17 +29,12 @@ inline DOU RV_fast1(INT start1,INT num,INT * __restrict row_ptr,INT * __restrict
 	constexpr size_t vl = 8;
 	DOU answer = 0;
 	
-	//INT end1 = start1 + num;
-	//for (INT i = start1; i < start1 + num; i++) {
-	//	answer += mtx_val[i] * vec_val[col_idx[i]];
-	//}
-	
 	vfloat64m4_t v_1, v_2;
 	vfloat64m4_t v_summ = vfmv_v_f_f64m4(0.0, vl);
 	DOU temp[8];
 	while (num > vl) {
 		for (int i = 0; i < 8; i++) temp[i] = vec_val[col_idx[start1 + i]];
-		v_1 = vle_v_f64m4(start1, vl);
+		v_1 = vle_v_f64m4(mtx_val + start1, vl);
 		v_2 = vle_v_f64m4(temp, vl);
 		v_summ = vfmacc_vv_f64m4(v_summ, v_1, v_2, vl);
 		start1 += vl;
@@ -162,8 +42,7 @@ inline DOU RV_fast1(INT start1,INT num,INT * __restrict row_ptr,INT * __restrict
 	}
 	vfloat64m1_t v_res = vfmv_v_f_f64m1(0.0, vsetvlmax_e64m1());
 	v_res = vfredsum_vs_f64m4_f64m1(v_res, v_summ, v_res, vl);
-	DOU answer;
-	vse_v_f32m1(&answer, v_res, 1);
+	vse_v_f64m1(&answer, v_res, 1);
 	return answer + RV_fast2(start1,num,row_ptr,col_idx,mtx_val,vec_val);
 }
 
@@ -175,16 +54,6 @@ inline DOU calculation(INT start1,INT num,INT * __restrict row_ptr,INT * __restr
 		return RV_fast1(start1,num,row_ptr,col_idx,mtx_val,vec_val);
 	else
 		return RV_fast2(start1,num,row_ptr,col_idx,mtx_val,vec_val);
-	/*
-	if(num >= 4)
-	{
-		return SIMD_fast1(start1,num,row_ptr,col_idx,mtx_val,vec_val);
-	}
-	else
-	{
-		return SIMD_fast2(start1,num,row_ptr,col_idx,mtx_val,vec_val);
-	}
-	*/
 }
 
 inline void thread_block(INT thread_id,INT start,INT end,INT start2,INT end2,INT * __restrict row_ptr,INT * __restrict col_idx,DOU * __restrict mtx_val,DOU * __restrict mtx_ans,DOU * __restrict mid_ans,DOU * __restrict vec_val)
