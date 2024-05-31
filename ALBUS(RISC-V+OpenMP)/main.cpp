@@ -26,6 +26,7 @@ int main(int argc , char ** argv)
                 printf("Error!\n");
         }
         printf("------------------------------------------------------------------\n");
+        printf("ALBUS      : RISC-V+OpenMP\n");
         printf("FileName   : %s\n",filename);
         //----------------------------------------------------------//
         //------------------calculation iterations------------------//
@@ -35,6 +36,9 @@ int main(int argc , char ** argv)
                 ite = ite * 10 + iterations[i]-'0';
         }
         printf("Iterations : %d\n",ite);
+		INT    thread_nums = omp_get_max_threads();
+		omp_set_num_threads(thread_nums);
+		printf("Number of threads : %d\n", thread_nums);
         //----------------------------------------------------------//
         FILE * fp_mtx;
         INT  * row_ptr;
@@ -50,9 +54,6 @@ int main(int argc , char ** argv)
         INT  * end1;
         DOU  * mid_ans;
         DOU    start_time,end_time;
-        INT    thread_nums = omp_get_max_threads();
-		omp_set_num_threads(thread_nums);
-		printf("Number of threads : %d\n", thread_nums);
         fp_mtx = fopen(filename,"rb+");
         printf("--------------Matrix Information and Performance Data-------------\n");
         ReadFile(fp_mtx,row_ptr,col_idx,mtx_val,vec_val,par_set);
