@@ -18,8 +18,9 @@ inline DOU RV_fast2(INT start1,INT num,INT * __restrict row_ptr,INT * __restrict
 {
 	DOU answer = 0;
 	INT end1 = start1 + num;
-	for (INT i = start1; i < start1 + num; i++) {
-		answer += mtx_val[i] * vec_val[col_idx[i]];
+	while (start1 < end1) {
+		answer += mtx_val[start1] * vec_val[col_idx[start1]];
+		start1++;
 	}
 	return answer;
 }
@@ -27,13 +28,21 @@ inline DOU RV_fast2(INT start1,INT num,INT * __restrict row_ptr,INT * __restrict
 inline DOU RV_fast1(INT start1,INT num,INT * __restrict row_ptr,INT * __restrict col_idx,DOU * __restrict mtx_val,DOU * __restrict vec_val)
 {
 	constexpr size_t vl = 8;
+	INT end1 = start1 + num;
 	DOU answer = 0;
+	DOU temp[8]{};
 	
 	vfloat64m4_t v_1, v_2;
-	vfloat64m4_t v_summ = vfmv_v_f_f64m4(0.0, vl);
-	DOU temp[8];
+	vfloat64m4_t v_summ = vle_v_f64m4(temp, vl);
 	while (num > vl) {
-		for (int i = 0; i < 8; i++) temp[i] = vec_val[col_idx[start1 + i]];
+		temp[0] = vec_val[col_idx[start1]];
+		temp[1] = vec_val[col_idx[start1 + 1]];
+		temp[2] = vec_val[col_idx[start1 + 2]];
+		temp[3] = vec_val[col_idx[start1 + 3]];
+		temp[4] = vec_val[col_idx[start1 + 4]];
+		temp[5] = vec_val[col_idx[start1 + 5]];
+		temp[6] = vec_val[col_idx[start1 + 6]];
+		temp[7] = vec_val[col_idx[start1 + 7]];
 		v_1 = vle_v_f64m4(mtx_val + start1, vl);
 		v_2 = vle_v_f64m4(temp, vl);
 		v_summ = vfmacc_vv_f64m4(v_summ, v_1, v_2, vl);
@@ -43,7 +52,11 @@ inline DOU RV_fast1(INT start1,INT num,INT * __restrict row_ptr,INT * __restrict
 	vfloat64m1_t v_res = vfmv_v_f_f64m1(0.0, vsetvlmax_e64m1());
 	v_res = vfredsum_vs_f64m4_f64m1(v_res, v_summ, v_res, vl);
 	vse_v_f64m1(&answer, v_res, 1);
-	return answer + RV_fast2(start1,num,row_ptr,col_idx,mtx_val,vec_val);
+	while (start1 < end1) {
+		answer += mtx_val[start1] * vec_val[col_idx[start1]];
+		start1++;
+	}
+	return answer;
 }
 
 inline DOU calculation(INT start1,INT num,INT * __restrict row_ptr,INT * __restrict col_idx,DOU * __restrict mtx_val,DOU * __restrict vec_val)
