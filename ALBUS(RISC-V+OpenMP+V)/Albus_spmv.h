@@ -61,8 +61,7 @@ inline DOU RV_fast1(INT start1,INT num,INT * __restrict row_ptr,INT * __restrict
 
 inline DOU calculation(INT start1,INT num,INT * __restrict row_ptr,INT * __restrict col_idx,DOU * __restrict mtx_val,DOU * __restrict vec_val)
 {
-	// size_t vl = vsetvlmax_e64m4();
-	// vl == 8
+	// vsetvlmax_e64m4() == 8
 	if (num >= 8)
 		return RV_fast1(start1,num,row_ptr,col_idx,mtx_val,vec_val);
 	else

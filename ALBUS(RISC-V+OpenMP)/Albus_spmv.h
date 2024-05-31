@@ -3,7 +3,6 @@
 #include<math.h>
 #include<time.h>
 #include<omp.h>
-//#include<immintrin.h>
 #include<cstring>
 #include<sys/time.h>
 #include<stdlib.h>
@@ -11,9 +10,6 @@ using namespace std;
 
 #define INT int
 #define DOU double
-#define AVX_DOU __m256d
-#define SSE_DOU __m128d
-
 
 inline void thread_block(INT thread_id,INT start,INT end,INT start2,INT end2,INT * __restrict row_ptr,INT * __restrict col_idx,DOU * __restrict mtx_val,DOU * __restrict mtx_ans,DOU * __restrict mid_ans,DOU * __restrict vec_val)
 {
