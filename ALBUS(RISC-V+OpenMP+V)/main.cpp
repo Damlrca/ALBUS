@@ -64,7 +64,7 @@ int main(int argc , char ** argv)
 	start1     = (INT *)aligned_alloc(64,sizeof(INT)*thread_nums);
         end1       = (INT *)aligned_alloc(64,sizeof(INT)*thread_nums);
         mid_ans    = (DOU *)aligned_alloc(64,sizeof(DOU)*thread_nums*2);
-	ite = par_set[8];
+		// ite = par_set[8]; // ???
         //---------------------------------------------------------------//
         albus_balance(row_ptr,par_set,start,end,start1,end1,mid_ans,thread_nums);
         struct timeval startTime,endTime;
