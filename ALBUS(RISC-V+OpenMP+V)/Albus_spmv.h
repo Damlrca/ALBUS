@@ -4,7 +4,7 @@
 #include<time.h>
 #include<omp.h>
 
-#include <riscv-vector.h>
+#include <riscv_vector.h>
 
 #include<cstring>
 #include<sys/time.h>
@@ -33,7 +33,7 @@ inline DOU RV_fast1(INT start1,INT num,INT * __restrict row_ptr,INT * __restrict
 	DOU temp[8]{};
 	
 	vfloat64m4_t v_1, v_2;
-	vfloat64m4_t v_summ = vle_v_f64m4(temp, vl);
+	vfloat64m4_t v_summ = vle64_v_f64m4(temp, vl);
 	while (num > vl) {
 		temp[0] = vec_val[col_idx[start1]];
 		temp[1] = vec_val[col_idx[start1 + 1]];
@@ -43,15 +43,15 @@ inline DOU RV_fast1(INT start1,INT num,INT * __restrict row_ptr,INT * __restrict
 		temp[5] = vec_val[col_idx[start1 + 5]];
 		temp[6] = vec_val[col_idx[start1 + 6]];
 		temp[7] = vec_val[col_idx[start1 + 7]];
-		v_1 = vle_v_f64m4(mtx_val + start1, vl);
-		v_2 = vle_v_f64m4(temp, vl);
+		v_1 = vle64_v_f64m4(mtx_val + start1, vl);
+		v_2 = vle64_v_f64m4(temp, vl);
 		v_summ = vfmacc_vv_f64m4(v_summ, v_1, v_2, vl);
 		start1 += vl;
 		num -= vl;
 	}
 	vfloat64m1_t v_res = vfmv_v_f_f64m1(0.0, vsetvlmax_e64m1());
-	v_res = vfredsum_vs_f64m4_f64m1(v_res, v_summ, v_res, vl);
-	vse_v_f64m1(&answer, v_res, 1);
+	v_res = vfredosum_vs_f64m4_f64m1(v_res, v_summ, v_res, vl);
+	vse64_v_f64m1(&answer, v_res, 1);
 	while (start1 < end1) {
 		answer += mtx_val[start1] * vec_val[col_idx[start1]];
 		start1++;
