@@ -30,21 +30,13 @@ inline DOU RV_fast1(INT start1,INT num,INT * __restrict row_ptr,INT * __restrict
 	constexpr size_t vl = 8;
 	INT end1 = start1 + num;
 	DOU answer = 0;
-	DOU temp[8]{};
 	
-	vfloat64m4_t v_1, v_2;
-	vfloat64m4_t v_summ = vle64_v_f64m4(temp, vl);
+	vfloat64m4_t v_summ = vfmv_v_f_f64m4(0.0, vl);
 	while (num > vl) {
-		temp[0] = vec_val[col_idx[start1]];
-		temp[1] = vec_val[col_idx[start1 + 1]];
-		temp[2] = vec_val[col_idx[start1 + 2]];
-		temp[3] = vec_val[col_idx[start1 + 3]];
-		temp[4] = vec_val[col_idx[start1 + 4]];
-		temp[5] = vec_val[col_idx[start1 + 5]];
-		temp[6] = vec_val[col_idx[start1 + 6]];
-		temp[7] = vec_val[col_idx[start1 + 7]];
-		v_1 = vle64_v_f64m4(mtx_val + start1, vl);
-		v_2 = vle64_v_f64m4(temp, vl);
+		vuint32m2_t index = vle32_v_u32m2(reinterpret_cast<uint32_t *>(col_idx + start1), vl);
+		vuint32m2_t index_shftd = vsll_vx_u32m2(index, 3, vl);
+		vfloat64m4_t v_1 = vle64_v_f64m4(mtx_val + start1, vl);
+		vfloat64m4_t v_2 = vluxei32_v_f64m4(vec_val, index_shftd, vl);
 		v_summ = vfmacc_vv_f64m4(v_summ, v_1, v_2, vl);
 		start1 += vl;
 		num -= vl;
